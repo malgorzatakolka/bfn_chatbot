@@ -1,4 +1,4 @@
-snowflake-ml-python
+
 snowflake-snowpark-python
 snowflake.core
 streamlit
