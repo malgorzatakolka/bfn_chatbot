@@ -1,4 +1,3 @@
-
-snowflake-snowpark-python
+snowflake.cortex
 snowflake.core
 streamlit
