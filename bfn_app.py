@@ -50,7 +50,7 @@ def config_options():
     for cat in categories:
         cat_list.append(cat.CATEGORY)
             
-   st.sidebar.selectbox('What would you like to find about', cat_list, key = "category_value")
+    st.sidebar.selectbox('What would you like to find about', cat_list, key = "category_value")
 
     st.sidebar.checkbox('Do you want that I remember the chat history?', key="use_chat_history", value = True)
 
