@@ -50,7 +50,7 @@ def config_options():
     for cat in categories:
         cat_list.append(cat.CATEGORY)
             
-    st.sidebar.selectbox('What would you like to find about', cat_list, key = "category_value")
+   st.sidebar.selectbox('What would you like to find about', cat_list, key = "category_value")
 
     st.sidebar.checkbox('Do you want that I remember the chat history?', key="use_chat_history", value = True)
 
@@ -129,7 +129,7 @@ def create_prompt (myquestion):
         chat_history = ""
   
     prompt = f"""
-           You are an expert chat assistance that extracs information from the CONTEXT provided
+           You are an empathetic breastfeeding consultant. You are an expert chat assistance that extracs information from the CONTEXT provided
            between <context> and </context> tags.
            You offer a chat experience considering the information included in the CHAT HISTORY
            provided between <chat_history> and </chat_history> tags..
@@ -184,19 +184,19 @@ def main():
     st.markdown(css, unsafe_allow_html=True)
 
     # Use st.markdown to display the title with the custom class
-    st.markdown('<h1 class="seledin-title">:speech_balloon: Breastfeeding Network Drug in Breastmilk Document Assistant</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="seledin-title">Breastfeeding Network Drug in Breastmilk Document Assistant</h1>', unsafe_allow_html=True)
     
     st.write('''<p style="color:purple;">The information provided is taken from various reference source. It is provided as a guideline.
              No responsibility can be taken by the author or BfN fot the wat in which the information is used. 
              Clinical decisions remain the responsibility of medical and breastfeeding practitioners. The data presented here is intended to provife some
              information but cannot replace input from professionals</p>''', unsafe_allow_html=True
              )
-    st.write("This is the list of documents you already have and that will be used to answer your questions:")
-    docs_available = session.sql("ls @docs").collect()
-    list_docs = []
-    for doc in docs_available:
-        list_docs.append(doc["name"])
-    st.dataframe(list_docs)
+    # st.write("This is the list of documents you already have and that will be used to answer your questions:")
+    # docs_available = session.sql("ls @docs").collect()
+    # list_docs = []
+    # for doc in docs_available:
+    #     list_docs.append(doc["name"])
+    # st.dataframe(list_docs)
 
     config_options()
     init_messages()
@@ -223,17 +223,19 @@ def main():
             with st.spinner(f"{st.session_state.model_name} thinking..."):
                 response, relative_paths = answer_question(question)            
                 response = response.replace("'", "")
-                message_placeholder.markdown(response)
+                
 
                 if relative_paths != "None":
-                    with st.sidebar.expander("Related Documents"):
-                        for path in relative_paths:
-                            cmd2 = f"select GET_PRESIGNED_URL(@docs, '{path}', 360) as URL_LINK from directory(@docs)"
-                            df_url_link = session.sql(cmd2).to_pandas()
-                            url_link = df_url_link._get_value(0,'URL_LINK')
-                
-                            display_url = f"Doc: [{path}]({url_link})"
-                            st.sidebar.markdown(display_url)
+        
+                    for path in relative_paths:
+                        cmd2 = f"select GET_PRESIGNED_URL(@docs, '{path}', 360) as URL_LINK from directory(@docs)"
+                        df_url_link = session.sql(cmd2).to_pandas()
+                        url_link = df_url_link._get_value(0,'URL_LINK')
+            
+                        display_url = f"Doc: [{path}]({url_link})"
+                        
+                        st.sidebar.markdown(display_url)
+                message_placeholder.markdown(f"{response} {display_url}")
 
         
         st.session_state.messages.append({"role": "assistant", "content": response})
