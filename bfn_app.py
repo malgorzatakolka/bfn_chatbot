@@ -1,9 +1,6 @@
 import streamlit as st
-
-
 from snowflake.cortex import Complete
 from snowflake.core import Root
-
 import pandas as pd
 import json
 
@@ -15,14 +12,16 @@ slide_window = 7
 CORTEX_SEARCH_DATABASE = "CC_QUICKSTART_CORTEX_SEARCH_DOCS"
 CORTEX_SEARCH_SCHEMA = "DATA"
 CORTEX_SEARCH_SERVICE = "CC_SEARCH_SERVICE_CS"
-######
+
 
 # columns to query in the service
 COLUMNS = [
     "chunk",
     "relative_path",
+    "linked_url",
     "category"
 ]
+
 cnx = st.connection('snowflake')
 session = cnx.session()
 root = Root(session)                         
@@ -50,8 +49,7 @@ def config_options():
     for cat in categories:
         cat_list.append(cat.CATEGORY)
             
-    st.sidebar.selectbox('What would you like to find about', cat_list, key = "category_value")
-
+    st.sidebar.selectbox('Choose a category of interest', cat_list, key = "category_value")
     st.sidebar.checkbox('Do you want that I remember the chat history?', key="use_chat_history", value = True)
 
     st.sidebar.checkbox('Debug: Click to see summary generated of previous conversation', key="debug", value = True)
@@ -123,13 +121,13 @@ def create_prompt (myquestion):
             question_summary = summarize_question_with_history(chat_history, myquestion)
             prompt_context =  get_similar_chunks_search_service(question_summary)
         else:
-            prompt_context = get_similar_chunks_search_service(myquestion) #First question when using history
+            prompt_context = get_similar_chunks_search_service(myquestion) # First question when using history
     else:
         prompt_context = get_similar_chunks_search_service(myquestion)
         chat_history = ""
   
     prompt = f"""
-           You are an empathetic breastfeeding consultant. You are an expert chat assistance that extracs information from the CONTEXT provided
+           You are an expert chat assistance that extracts information about drugs in breastmilk from the CONTEXT provided
            between <context> and </context> tags.
            You offer a chat experience considering the information included in the CHAT HISTORY
            provided between <chat_history> and </chat_history> tags..
@@ -156,18 +154,18 @@ def create_prompt (myquestion):
     
     json_data = json.loads(prompt_context)
 
-    relative_paths = set(item['relative_path'] for item in json_data['results'])
+    linked_urls = set(item['linked_url'] for item in json_data['results'])
 
-    return prompt, relative_paths
+    return prompt, linked_urls
 
 
 def answer_question(myquestion):
 
-    prompt, relative_paths = create_prompt (myquestion)
+    prompt, linked_urls = create_prompt (myquestion)
 
     response = Complete(st.session_state.model_name, prompt)   
 
-    return response, relative_paths
+    return response, linked_urls
 
 def main():
 
@@ -188,7 +186,7 @@ def main():
     
     st.write('''<p style="color:purple;">The information provided is taken from various reference source. It is provided as a guideline.
              No responsibility can be taken by the author or BfN fot the wat in which the information is used. 
-             Clinical decisions remain the responsibility of medical and breastfeeding practitioners. The data presented here is intended to provife some
+             Clinical decisions remain the responsibility of medical and breastfeeding practitioners. The data presented here is intended to provide some
              information but cannot replace input from professionals</p>''', unsafe_allow_html=True
              )
     # st.write("This is the list of documents you already have and that will be used to answer your questions:")
@@ -221,19 +219,14 @@ def main():
             question = question.replace("'","")
     
             with st.spinner(f"{st.session_state.model_name} thinking..."):
-                response, relative_paths = answer_question(question)            
+                response, linked_urls = answer_question(question)            
                 response = response.replace("'", "")
                 
 
-                if relative_paths != "None":
+                if linked_urls != "None":
         
-                    for path in relative_paths:
-                        cmd2 = f"select GET_PRESIGNED_URL(@docs, '{path}', 360) as URL_LINK from directory(@docs)"
-                        df_url_link = session.sql(cmd2).to_pandas()
-                        url_link = df_url_link._get_value(0,'URL_LINK')
-            
-                        display_url = f"Doc: [{path}]({url_link})"
-                        
+                    for linked_url in linked_urls:
+                        display_url = f"Doc: [{linked_url}]({linked_url})"
                         st.sidebar.markdown(display_url)
                 message_placeholder.markdown(f"{response} {display_url}")
 
