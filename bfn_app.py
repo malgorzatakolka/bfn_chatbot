@@ -259,8 +259,10 @@ COLUMNS = [
     "category"
 ]
 
-session = get_active_session()
+cnx = st.connection('snowflake')
+session = cnx.session()
 root = Root(session)                         
+                    
 
 svc = root.databases[CORTEX_SEARCH_DATABASE].schemas[CORTEX_SEARCH_SCHEMA].cortex_search_services[CORTEX_SEARCH_SERVICE]
    
