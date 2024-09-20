@@ -24,13 +24,11 @@ COLUMNS = [
 ]
 
 # Establish Snowflake session
-def get_snowflake_session():
-    if 'snowflake_session' not in st.session_state:
-        cnx = st.connection('snowflake')
-        st.session_state.snowflake_session = cnx.session()
-    return st.session_state.snowflake_session
 
-session = get_snowflake_session()
+cnx = st.connection('snowflake')
+
+
+session = cnx.session()
 root = Root(session)
 
 
@@ -97,7 +95,7 @@ def get_chat_history():
 
     return chat_history
 
-@udf(session=session)
+
 def summarize_question_with_history(chat_history, question):
 # To get the right context, use the LLM to first summarize the previous conversation
 # This will be used to get embeddings and find similar chunks in the docs for context
@@ -171,7 +169,6 @@ def create_prompt (myquestion):
 
     return prompt, linked_urls
 
-@udf(session=session)
 def answer_question(myquestion):
 
     prompt, linked_urls = create_prompt (myquestion)
