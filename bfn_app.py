@@ -9,7 +9,7 @@ pd.set_option("max_colwidth", None)
 NUM_CHUNKS = 3
 slide_window = 7
 
-CORTEX_SEARCH_DATABASE = "CC_QUICKSTART_CORTEX_SEARCH_DOCS"
+CORTEX_SEARCH_DATABASE = "BFN_PROJECT"
 CORTEX_SEARCH_SCHEMA = "DATA"
 CORTEX_SEARCH_SERVICE = "CC_SEARCH_SERVICE_CS"
 
@@ -185,7 +185,7 @@ def main():
     st.markdown('<h1 class="seledin-title">Breastfeeding Network Drug in Breastmilk Document Assistant</h1>', unsafe_allow_html=True)
     
     st.write('''<p style="color:purple;">The information provided is taken from various reference source. It is provided as a guideline.
-             No responsibility can be taken by the author or BfN fot the wat in which the information is used. 
+             No responsibility can be taken by the author or BfN for the way in which the information is used. 
              Clinical decisions remain the responsibility of medical and breastfeeding practitioners. The data presented here is intended to provide some
              information but cannot replace input from professionals</p>''', unsafe_allow_html=True
              )
