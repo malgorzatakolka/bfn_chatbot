@@ -95,7 +95,7 @@ def complete(myquestion):
           """
     
     df_response = session.sql(cmd, params=[st.session_state.model_name, prompt]).collect()
-    return df_response, relative_paths
+    return df_response, linked_url
 
 def main():
     
@@ -125,10 +125,12 @@ def main():
     question = st.text_input("Enter question", placeholder="Is there any special lubricant to be used with the premium bike?", label_visibility="collapsed")
 
     if question:
-        response, linked_paths = complete(question)
+        response, linked_url = complete(question)
         res_text = response[0].RESPONSE
-        display_url = f"Doc: [{url_link}]({url_link})"
-        st.markdown(res_text, display_url)
+        urls = f"Docs: "
+        for url in linked_url:
+            urls += f"[{url_link}]({url_link})"
+        st.markdown(res_text, urls)
 
                 
 if __name__ == "__main__":
