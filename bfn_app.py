@@ -49,8 +49,6 @@ def config_options():
     # Session state for debugging purposes
     st.sidebar.expander("Session State").write(st.session_state)
 
-    st.sidebar.button("Start Over", key="clear_conversation", on_click=init_messages)
-
 def init_messages():
 
     # Initialize chat history
@@ -207,7 +205,7 @@ def main():
                     message_placeholder.markdown(response + "\n\n" + urls)
 
         st.session_state.messages.append({"role": "assistant", "content": response})
-
+        st.button("Start Over", key="clear_conversation", on_click=init_messages)
 
                 
 if __name__ == "__main__":
