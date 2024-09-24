@@ -202,7 +202,7 @@ def main():
     
             with st.spinner(f"{st.session_state.model_name} thinking..."):
                 response, linked_url = answer_question(question)            
-                urls = "Docs: "
+                urls = "Docs: \n"
                 for url in linked_url:
                     urls += f"[{url}]({url}) "
                     message_placeholder.markdown(response + "\n\n" + urls)
