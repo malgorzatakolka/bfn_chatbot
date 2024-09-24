@@ -206,7 +206,7 @@ def main():
 
         st.session_state.messages.append({"role": "assistant", "content": response})
 
-    st.button("Reset chat", key="clear_conversation", on_click=init_messages)    
+        st.button("Reset chat", key="clear_conversation", on_click=init_messages)    
                 
 if __name__ == "__main__":
     main()
