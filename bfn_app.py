@@ -190,7 +190,8 @@ def main():
         st.session_state.messages.append({"role": "assistant", "content": response})
 
     # Add "Clear chat" button under the chat
-    st.button( "Clear chat", on_click=init_messages)
+    st.button( "Clear chat", type="primary", on_click=init_messages)
+
 
                 
 if __name__ == "__main__":
