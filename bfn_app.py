@@ -122,7 +122,7 @@ def main():
 
     config_options()
 
-    question = st.text_input("Enter question", placeholder="Is there any special lubricant to be used with the premium bike?", label_visibility="collapsed")
+    question = st.text_input("Enter question", placeholder="Ask the question about drugs in breastmilk.", label_visibility="collapsed")
 
     if question:
         response, linked_url = complete(question)
