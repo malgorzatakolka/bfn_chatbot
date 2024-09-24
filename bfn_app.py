@@ -45,13 +45,12 @@ def config_options():
     st.sidebar.selectbox('Select what products you are looking for', cat_list, key = "category_value")
 
     # Session state for debugging purposes
-    st.sidebar.expander("Session State").write(st.session_state)
-
+    st.sidebar.expander("Session State").write(st.session_state)   
+    
 def init_messages():
     # Initialize chat history
-    if "messages" not in st.session_state or st.session_state.get("clear_conversation", False):
+    if "messages" not in st.session_state:
         st.session_state.messages = []
-        st.session_state.clear_conversation = False
         
 def get_similar_chunks_search_service(query):
     if st.session_state.category_value == "ALL":
@@ -191,9 +190,8 @@ def main():
         st.session_state.messages.append({"role": "assistant", "content": response})
 
     # Add "Start Over" button under the chat
-    if st.button("Start Over", key="clear_conversation", on_click=init_messages):
-        st.session_state.clear_conversation = True
-        st.experimental_rerun()  # Optional: rerun the script to refresh the interface
+    st.button("Start Over", on_click=init_messages)
+
                 
 if __name__ == "__main__":
     main()
