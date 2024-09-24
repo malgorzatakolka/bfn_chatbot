@@ -159,7 +159,7 @@ def main():
     st.write('''<p style="color:purple;">The information provided is taken from various reference sources. It is provided as a guideline.
              No responsibility can be taken by the author or BfN for the way in which the information is used. 
              Clinical decisions remain the responsibility of medical and breastfeeding practitioners. The data presented here is intended to provide some
-             information but cannot replace input from professionals</p>''', unsafe_allow_html=True
+             information but cannot replace input from professionals.</p>''', unsafe_allow_html=True
              )
 
     config_options()
