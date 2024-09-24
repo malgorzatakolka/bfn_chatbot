@@ -5,6 +5,7 @@ import pandas as pd
 import json
 
 NUM_CHUNKS = 3
+SLIDE_WINDOW = 5
 CORTEX_SEARCH_DATABASE = "BFN_PROJECT"
 CORTEX_SEARCH_SCHEMA = "DATA"
 CORTEX_SEARCH_SERVICE = "CC_SEARCH_SERVICE_CS"
@@ -48,6 +49,14 @@ def config_options():
     # Session state for debugging purposes
     st.sidebar.expander("Session State").write(st.session_state)
 
+    st.sidebar.button("Start Over", key="clear_conversation", on_click=init_messages)
+
+def init_messages():
+
+    # Initialize chat history
+    if st.session_state.clear_conversation or "messages" not in st.session_state:
+        st.session_state.messages = []
+        
 def get_similar_chunks_search_service(query):
 
     if st.session_state.category_value == "ALL":
@@ -59,35 +68,84 @@ def get_similar_chunks_search_service(query):
     st.sidebar.json(response.json())
     return response.json()  
 
-def create_prompt (myquestion):
-
-    prompt_context = get_similar_chunks_search_service(myquestion)
+def get_chat_history():
+    chat_history = []
+    star_index = max(0, len(st.session_state.messages) - SLIDE_WINDOW)
+    for i in range(start_index, len(st.session_state.messages) -1):
+        chat_history.append(st.session_state.messages[i])
+    return chat_history
+    
+def summarize_question_with_history(chat_history, question):
+# To get the right context, use the LLM to first summarize the previous conversation
+# This will be used to get embeddings and find similar chunks in the docs for context
 
     prompt = f"""
-       You are an expert chat assistance that extracs information from the CONTEXT provided
-       between <context> and </context> tags.
-       When ansering the question contained between <question> and </question> tags
-       be concise and do not hallucinate. 
-       If you don´t have the information just say so.
-       Only anwer the question if you can extract it from the CONTEXT provideed.
-       
-       Do not mention the CONTEXT used in your answer.
+        Based on the chat history below and the question, generate a query that extend the question
+        with the chat history provided. The query should be in natual language. 
+        Answer with only the query. Do not add any explanation.
+        
+        <chat_history>
+        {chat_history}
+        </chat_history>
+        <question>
+        {question}
+        </question>
+        """
+    cmd = """
+            select snowflake.cortex.complete(?, ?) as response
+          """
+    
+    summary = session.sql(cmd, params=[st.session_state.model_name, prompt])[0].RESPONSE
 
-       <context>          
-       {prompt_context}
-       </context>
-       <question>  
-       {myquestion}
-       </question>
-       Answer: 
-       """
+    if st.session_state.debug:
+        st.sidebar.text("Summary to be used to find similar chunks in the docs:")
+        st.sidebar.caption(summary)
 
+    return summary.replace("'", "")
+
+def create_prompt (myquestion):
+
+    chat_history = get_chat_history()
+
+    if chat_history != []: #There is chat_history, so not first question
+        question_summary = summarize_question_with_history(chat_history, myquestion)
+        prompt_context =  get_similar_chunks_search_service(question_summary)
+    else:
+        prompt_context = get_similar_chunks_search_service(myquestion) #First question when using history
+
+  
+    prompt = f"""
+           You are an expert chat assistance that extracs information from the CONTEXT provided
+           between <context> and </context> tags.
+           You offer a chat experience considering the information included in the CHAT HISTORY
+           provided between <chat_history> and </chat_history> tags..
+           When ansering the question contained between <question> and </question> tags
+           be concise and do not hallucinate. 
+           If you don´t have the information just say so.
+           
+           Do not mention the CONTEXT used in your answer.
+           Do not mention the CHAT HISTORY used in your asnwer.
+
+           Only anwer the question if you can extract it from the CONTEXT provideed.
+           
+           <chat_history>
+           {chat_history}
+           </chat_history>
+           <context>          
+           {prompt_context}
+           </context>
+           <question>  
+           {myquestion}
+           </question>
+           Answer: 
+           """
+    
     json_data = json.loads(prompt_context)
 
     linked_url = set(item['linked_url'] for item in json_data['results'])
     return prompt, linked_url
 
-def complete(myquestion):
+def answer_question(myquestion):
 
     prompt, linked_url = create_prompt(myquestion)
     cmd = """
@@ -95,7 +153,8 @@ def complete(myquestion):
           """
     
     df_response = session.sql(cmd, params=[st.session_state.model_name, prompt]).collect()
-    return df_response, linked_url
+    response = df_response[0].RESPONSE
+    return response, linked_url
 
 def main():
     
@@ -121,16 +180,34 @@ def main():
 
 
     config_options()
+    init_messages()
 
-    question = st.text_input("Enter question", placeholder="Ask the question about drugs in breastmilk.", label_visibility="collapsed")
+    for message in st.session_state.messages:
+        with st.chat_messages(message["role"]):
+            st.markdown(message["content"])
 
-    if question:
-        response, linked_url = complete(question)
-        res_text = response[0].RESPONSE
-        urls = "Docs: "
-        for url in linked_url:
-            urls += f"[{url}]({url}) "
-        st.markdown(res_text + "\n\n" + urls)
+    # Accept user input
+    if question := st.chat_input("Ask the question about drugs in breastmilk."):
+        # Add user message to chat history
+        st.session_state.messages.append({"role": "user", "content": question})
+        # Display user message in chat message container
+        with st.chat_message("user"):
+            st.markdown(question)
+        # Display assistant response in chat message container
+        with st.chat_message("assistant"):
+            message_placeholder = st.empty()
+    
+            question = question.replace("'","")
+    
+            with st.spinner(f"{st.session_state.model_name} thinking..."):
+                response, linked_url = answer_question(question)            
+                urls = "Docs: "
+                for url in linked_url:
+                    urls += f"[{url}]({url}) "
+                    message_placeholder.markdown(response + "\n\n" + urls)
+
+        st.session_state.messages.append({"role": "assistant", "content": response})
+
 
                 
 if __name__ == "__main__":
