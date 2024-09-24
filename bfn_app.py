@@ -190,12 +190,13 @@ def main():
     if question := st.chat_input("Ask the question about drugs in breastmilk."):
         # Add user message to chat history
         st.session_state.messages.append({"role": "user", "content": question})
-        # Display user message in chat message container
+               # Display user message in chat message container
         with st.chat_message("user"):
             st.markdown(question)
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
+
     
             question = question.replace("'","")
     
