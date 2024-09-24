@@ -180,7 +180,7 @@ def main():
 
     config_options()
     init_messages()
-
+    
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
@@ -205,8 +205,8 @@ def main():
                     message_placeholder.markdown(response + "\n\n" + urls)
 
         st.session_state.messages.append({"role": "assistant", "content": response})
-        st.button("Start Over", key="clear_conversation", on_click=init_messages)
 
+    st.button("Reset chat", key="clear_conversation", on_click=init_messages)    
                 
 if __name__ == "__main__":
     main()
