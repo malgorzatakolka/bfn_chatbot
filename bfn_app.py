@@ -157,7 +157,8 @@ def answer_question(myquestion):
     return response, linked_url
 
 def main():
-    
+    if st.button("Start Over", key="clear_conversation", on_click=init_messages):
+        st.experimental_rerun()  # Optional: rerun the script to refresh the interface
     css = """
     <style>
     .seledin-title {
@@ -208,4 +209,4 @@ def main():
                 
 if __name__ == "__main__":
     main()
-    st.button("Start Over", key="clear_conversation", on_click=init_messages)
+
