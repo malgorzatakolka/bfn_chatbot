@@ -127,10 +127,10 @@ def main():
     if question:
         response, linked_url = complete(question)
         res_text = response[0].RESPONSE
-        urls = f"Docs: "
+        urls = "Docs: "
         for url in linked_url:
-            urls += f"[{url_link}]({url_link})"
-        st.markdown(res_text, urls)
+            urls += f"[{url}]({url}) "
+        st.markdown(res_text + "\n\n" + urls)
 
                 
 if __name__ == "__main__":
