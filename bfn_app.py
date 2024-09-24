@@ -10,7 +10,6 @@ CORTEX_SEARCH_DATABASE = "BFN_PROJECT"
 CORTEX_SEARCH_SCHEMA = "DATA"
 CORTEX_SEARCH_SERVICE = "CC_SEARCH_SERVICE_CS"
 
-
 # Columns to query in the search service
 COLUMNS = [
     "chunk",
@@ -28,7 +27,6 @@ svc = root.databases[CORTEX_SEARCH_DATABASE].schemas[CORTEX_SEARCH_SCHEMA].corte
 ### Functions
      
 def config_options():
-
     st.sidebar.selectbox('Select your model:',(
                                     'reka-flash',
                                     'mixtral-8x7b',
@@ -50,13 +48,12 @@ def config_options():
     st.sidebar.expander("Session State").write(st.session_state)
 
 def init_messages():
-
     # Initialize chat history
-    if st.session_state.clear_conversation or "messages" not in st.session_state:
+    if "messages" not in st.session_state or st.session_state.get("clear_conversation", False):
         st.session_state.messages = []
+        st.session_state.clear_conversation = False
         
 def get_similar_chunks_search_service(query):
-
     if st.session_state.category_value == "ALL":
         response = svc.search(query, COLUMNS, limit=NUM_CHUNKS)
     else: 
@@ -69,17 +66,16 @@ def get_similar_chunks_search_service(query):
 def get_chat_history():
     chat_history = []
     start_index = max(0, len(st.session_state.messages) - SLIDE_WINDOW)
-    for i in range(start_index, len(st.session_state.messages) -1):
+    for i in range(start_index, len(st.session_state.messages) - 1):
         chat_history.append(st.session_state.messages[i])
     return chat_history
     
 def summarize_question_with_history(chat_history, question):
-# To get the right context, use the LLM to first summarize the previous conversation
-# This will be used to get embeddings and find similar chunks in the docs for context
-
+    # To get the right context, use the LLM to first summarize the previous conversation
+    # This will be used to get embeddings and find similar chunks in the docs for context
     prompt = f"""
         Based on the chat history below and the question, generate a query that extend the question
-        with the chat history provided. The query should be in natual language. 
+        with the chat history provided. The query should be in natural language. 
         Answer with only the query. Do not add any explanation.
         
         <chat_history>
@@ -92,41 +88,35 @@ def summarize_question_with_history(chat_history, question):
     cmd = """
             select snowflake.cortex.complete(?, ?) as response
           """
-    
     df_response = session.sql(cmd, params=[st.session_state.model_name, prompt]).collect()
     summary = df_response[0].RESPONSE
-    # st.markdown(summary[0].RESPONSE)
-    
 
     st.sidebar.text("Summary to be used to find similar chunks in the docs:")
     st.sidebar.caption(summary)
 
     return summary.replace("'", "")
 
-def create_prompt (myquestion):
-
+def create_prompt(myquestion):
     chat_history = get_chat_history()
-
-    if chat_history != []: #There is chat_history, so not first question
+    if chat_history:  # There is chat_history, so not first question
         question_summary = summarize_question_with_history(chat_history, myquestion)
-        prompt_context =  get_similar_chunks_search_service(question_summary)
+        prompt_context = get_similar_chunks_search_service(question_summary)
     else:
-        prompt_context = get_similar_chunks_search_service(myquestion) #First question when using history
-
+        prompt_context = get_similar_chunks_search_service(myquestion)  # First question when using history
   
     prompt = f"""
-           You are an expert chat assistance that extracs information from the CONTEXT provided
+           You are an expert chat assistant that extracts information from the CONTEXT provided
            between <context> and </context> tags.
            You offer a chat experience considering the information included in the CHAT HISTORY
-           provided between <chat_history> and </chat_history> tags..
-           When ansering the question contained between <question> and </question> tags
+           provided between <chat_history> and </chat_history> tags.
+           When answering the question contained between <question> and </question> tags,
            be concise and do not hallucinate. 
-           If you don´t have the information just say so.
+           If you don’t have the information just say so.
            
            Do not mention the CONTEXT used in your answer.
-           Do not mention the CHAT HISTORY used in your asnwer.
+           Do not mention the CHAT HISTORY used in your answer.
 
-           Only anwer the question if you can extract it from the CONTEXT provideed.
+           Only answer the question if you can extract it from the CONTEXT provided.
            
            <chat_history>
            {chat_history}
@@ -141,24 +131,19 @@ def create_prompt (myquestion):
            """
     
     json_data = json.loads(prompt_context)
-
     linked_url = set(item['linked_url'] for item in json_data['results'])
     return prompt, linked_url
 
 def answer_question(myquestion):
-
     prompt, linked_url = create_prompt(myquestion)
     cmd = """
             select snowflake.cortex.complete(?, ?) as response
           """
-    
     df_response = session.sql(cmd, params=[st.session_state.model_name, prompt]).collect()
     response = df_response[0].RESPONSE
     return response, linked_url
 
 def main():
-    if st.button("Start Over", key="clear_conversation", on_click=init_messages):
-        st.experimental_rerun()  # Optional: rerun the script to refresh the interface
     css = """
     <style>
     .seledin-title {
@@ -166,18 +151,16 @@ def main():
     }
     </style>
     """
-
     # Inject the CSS into the app
     st.markdown(css, unsafe_allow_html=True)
 
     # Use st.markdown to display the title with the custom class
     st.markdown('<h1 class="seledin-title">Breastfeeding Network Drug in Breastmilk Factsheets\' Assistant </h1>', unsafe_allow_html=True)
-    st.write('''<p style="color:purple;">The information provided is taken from various reference source. It is provided as a guideline.
+    st.write('''<p style="color:purple;">The information provided is taken from various reference sources. It is provided as a guideline.
              No responsibility can be taken by the author or BfN for the way in which the information is used. 
              Clinical decisions remain the responsibility of medical and breastfeeding practitioners. The data presented here is intended to provide some
              information but cannot replace input from professionals</p>''', unsafe_allow_html=True
              )
-
 
     config_options()
     init_messages()
@@ -190,23 +173,29 @@ def main():
     if question := st.chat_input("Ask the question about drugs in breastmilk."):
         # Add user message to chat history
         st.session_state.messages.append({"role": "user", "content": question})
-               # Display user message in chat message container
+        # Display user message in chat message container
         with st.chat_message("user"):
             st.markdown(question)
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
-            question = question.replace("'","")
+            question = question.replace("'", "")
     
             with st.spinner(f"{st.session_state.model_name} thinking..."):
                 response, linked_url = answer_question(question)            
                 urls = ""
                 for url in linked_url:
                     urls += f"[{url}]({url}) "
-                    message_placeholder.markdown(response + "\n\n" + urls)
+                message_placeholder.markdown(response + "\n\n" + urls)
 
         st.session_state.messages.append({"role": "assistant", "content": response})
+
+    # Add "Start Over" button under the chat
+    if st.button("Start Over", key="clear_conversation", on_click=init_messages):
+        st.session_state.clear_conversation = True
+        st.experimental_rerun()  # Optional: rerun the script to refresh the interface
                 
 if __name__ == "__main__":
     main()
+
 
