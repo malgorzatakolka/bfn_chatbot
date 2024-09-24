@@ -205,8 +205,8 @@ def main():
                     message_placeholder.markdown(response + "\n\n" + urls)
 
         st.session_state.messages.append({"role": "assistant", "content": response})
-
-        st.button("Reset chat", key="clear_conversation", on_click=init_messages)    
+        if st.session_state.clear_conversation or "messages" in st.session_state:
+            st.button("Reset chat", key="clear_conversation", on_click=init_messages)    
                 
 if __name__ == "__main__":
     main()
