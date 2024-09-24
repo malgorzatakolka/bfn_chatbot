@@ -189,8 +189,8 @@ def main():
 
         st.session_state.messages.append({"role": "assistant", "content": response})
 
-    # Add "Start Over" button under the chat
-    st.button( :violet-background["Clear chat"] on_click=init_messages)
+    # Add "Clear chat" button under the chat
+    st.button( ":violet-background[Clear chat]", on_click=init_messages)
 
                 
 if __name__ == "__main__":
