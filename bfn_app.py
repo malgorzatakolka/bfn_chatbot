@@ -70,7 +70,7 @@ def get_similar_chunks_search_service(query):
 
 def get_chat_history():
     chat_history = []
-    star_index = max(0, len(st.session_state.messages) - SLIDE_WINDOW)
+    start_index = max(0, len(st.session_state.messages) - SLIDE_WINDOW)
     for i in range(start_index, len(st.session_state.messages) -1):
         chat_history.append(st.session_state.messages[i])
     return chat_history
