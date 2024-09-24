@@ -29,12 +29,12 @@ svc = root.databases[CORTEX_SEARCH_DATABASE].schemas[CORTEX_SEARCH_SCHEMA].corte
 def config_options():
 
     st.sidebar.selectbox('Select your model:',(
+                                    'reka-flash',
                                     'mixtral-8x7b',
                                     'snowflake-arctic',
                                     'mistral-large',
                                     'llama3-8b',
                                     'llama3-70b',
-                                    'reka-flash',
                                      'mistral-7b',
                                      'llama2-70b-chat',
                                      'gemma-7b'), key="model_name")
