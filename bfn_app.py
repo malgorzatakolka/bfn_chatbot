@@ -172,8 +172,7 @@ def main():
     st.markdown(css, unsafe_allow_html=True)
 
     # Use st.markdown to display the title with the custom class
-    st.markdown('<h1 class="seledin-title">Breastfeeding Network Drug in Breastmilk Document Assistant </h1>', unsafe_allow_html=True)
-    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.markdown('<h1 class="seledin-title">Breastfeeding Network Drug in Breastmilk Factsheets' Assistant </h1>', unsafe_allow_html=True)
     st.write('''<p style="color:purple;">The information provided is taken from various reference source. It is provided as a guideline.
              No responsibility can be taken by the author or BfN for the way in which the information is used. 
              Clinical decisions remain the responsibility of medical and breastfeeding practitioners. The data presented here is intended to provide some
