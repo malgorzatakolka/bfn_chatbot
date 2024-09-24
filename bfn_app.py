@@ -95,8 +95,10 @@ def summarize_question_with_history(chat_history, question):
             select snowflake.cortex.complete(?, ?) as response
           """
     
-    summary = session.sql(cmd, params=[st.session_state.model_name, prompt]).collect()
-    st.markdown(summary[0].RESPONSE)
+    df_response = session.sql(cmd, params=[st.session_state.model_name, prompt]).collect()
+    summary = df_response[0].RESPONSE
+    # st.markdown(summary[0].RESPONSE)
+    
 
     st.sidebar.text("Summary to be used to find similar chunks in the docs:")
     st.sidebar.caption(summary)
