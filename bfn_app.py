@@ -110,6 +110,7 @@ def create_prompt(myquestion):
            provided between <chat_history> and </chat_history> tags.
            When answering the question contained between <question> and </question> tags,
            be concise and do not hallucinate. 
+           If the CONTEX does not contain the information about the QUESTION say: your question is not related to drugs in breastmilk.
            If you don’t have the information just say so.
            
            Do not mention the CONTEXT used in your answer.
