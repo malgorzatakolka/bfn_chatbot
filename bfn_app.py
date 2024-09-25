@@ -182,11 +182,14 @@ def main():
             question = question.replace("'", "")
     
             with st.spinner(f"{st.session_state.model_name} thinking..."):
-                response, linked_url = answer_question(question)            
-                urls = ""
-                for url in linked_url:
-                    urls += f"[{url}]({url}) "
-                message_placeholder.markdown(response + "\n\n" + urls)
+                response, linked_url = answer_question(question)  
+                if response.startswith("Your question cannot be answered.")
+                     message_placeholder.markdown(response)
+                else:
+                    urls = ""
+                    for url in linked_url:
+                        urls += f"[{url}]({url}) "
+                    message_placeholder.markdown(response + "\n\n" + urls)
 
         st.session_state.messages.append({"role": "assistant", "content": response})
 
