@@ -183,7 +183,7 @@ def main():
     
             with st.spinner(f"{st.session_state.model_name} thinking..."):
                 response, linked_url = answer_question(question)  
-                if response.startswith("Your question cannot be answered.")
+                if response.startswith("Your question cannot be answered."):
                      message_placeholder.markdown(response)
                 else:
                     urls = ""
