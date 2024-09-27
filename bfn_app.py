@@ -1,3 +1,4 @@
+# based on https://quickstarts.snowflake.com/guide/ask_questions_to_your_own_documents_with_snowflake_cortex_search/index.html?index=..%2F..index#5
 import streamlit as st
 from snowflake.cortex import Complete
 from snowflake.core import Root
